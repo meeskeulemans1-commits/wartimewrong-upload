@@ -1,0 +1,36 @@
+name: Upload naar Wartime Wrong
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Naam (tag) van de release met de video"
+        required: true
+      mode:
+        description: "Publicatie"
+        type: choice
+        options: [public, scheduled, private]
+        default: public
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Uploaden naar YouTube
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: python upload.py "${{ github.event.inputs.tag }}" "${{ github.event.inputs.mode }}"
